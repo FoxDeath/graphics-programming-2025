@@ -7,6 +7,7 @@ out vec4 FragColor;
 //Uniforms
 uniform mat4 ProjMatrix;
 uniform mat4 InvProjMatrix;
+uniform float Time = 0.0;
 
 // Implement GetDistance based on version with output
 float GetDistance(vec3 p)
@@ -47,7 +48,7 @@ void main()
 	GetDistance(point, o);
 
 	// With the output value, get the final color
-	FragColor = GetOutputColor(point, distance, o);
+	FragColor = RayMarcherColour(origin, dir, Time);
 
 	// Convert linear depth to normalized depth (same as projecting the point and taking the Z/W)
 	gl_FragDepth = -ProjMatrix[2][2] - ProjMatrix[3][2] / point.z;

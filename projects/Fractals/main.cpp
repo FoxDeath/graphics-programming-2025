@@ -1,6 +1,7 @@
-#include "FractalExplorerApplication.h"
+#include "RaymarchingApplication.h"
 
-int main() {
-    FractalExplorerApplication app;
-    return app.Run();
+int main()
+{
+    RaymarchingApplication raymarchingApplication;
+    return raymarchingApplication.Run();
 }

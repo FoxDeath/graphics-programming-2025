@@ -1,15 +1,17 @@
 #pragma once
 
 #include <ituGL/application/Application.h>
+
 #include <ituGL/renderer/Renderer.h>
 #include <ituGL/camera/CameraController.h>
 #include <ituGL/utils/DearImGui.h>
 
 class Material;
 
-class FractalExplorerApplication : public Application {
+class RaymarchingApplication : public Application
+{
 public:
-    FractalExplorerApplication();
+    RaymarchingApplication();
 
 protected:
     void Initialize() override;
@@ -19,16 +21,23 @@ protected:
 
 private:
     void InitializeCamera();
-    void InitializeMaterials();
+    void InitializeMaterial();
     void InitializeRenderer();
-    void SetupUI();
 
-    std::shared_ptr<Material> CreateRaymarchMaterial(const char* fragmentShaderPath);
+    std::shared_ptr<Material> CreateRaymarchingMaterial(const char* fragmentShaderPath);
 
-    // Helpers
+    void RenderGUI();
+
+private:
+    // Helper object for debug GUI
     DearImGui m_imGui;
+
+    // Camera controller
     CameraController m_cameraController;
-    Renderer      m_renderer;
-    std::vector<std::shared_ptr<Material>> m_fractalMaterials;
-    int m_currentFractal = 0;
+
+    // Renderer
+    Renderer m_renderer;
+
+    // Materials
+    std::shared_ptr<Material> m_material;
 };

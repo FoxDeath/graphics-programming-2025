@@ -16,16 +16,6 @@ float GetDistance(vec3 p);
 // Forward declare config function
 void GetRayMarcherConfig(out int steps, out float time, out float maxDistance, out float surfaceDistance);
 
-vec3 hsv2rgb (vec3 c) {
-  vec4 K = vec4 (1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-  vec3 p = abs (fract (c.xxx + K.xyz) * 6.0 - K.www);
-  return c.z * mix (K.xxx, clamp (p - K.xxx, 0.0, 1.0), c.y);
-}
-
-float map (float value, float min1, float max1, float min2, float max2) {
-  return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
-}
-
 // Marches the ray in the scene
 void RayMarchering (vec3 ro, vec3 rd, inout RayMarchOutput o) {
     float steps = 0.0;
@@ -68,13 +58,13 @@ void RayMarchering (vec3 ro, vec3 rd, inout RayMarchOutput o) {
 
     if (hit) {
     col.rgb = vec3 (0.8 + (length (curPos) / 0.5), 1.0, 0.8);
-    col.rgb = hsv2rgb (col.rgb);
+    col.rgb = HSVToRGB(col.rgb);
     }
     else {
     col.rgb = vec3 (0.8 + (length (minDistToScenePos) / 0.5), 1.0, 0.8);
-    col.rgb = hsv2rgb (col.rgb);
+    col.rgb = HSVToRGB(col.rgb);
     col.rgb *= 1.0 / (minDistToScene * minDistToScene);
-    col.rgb /= map (sin (time * 3.0), -1.0, 1.0, 3000.0, 50000.0);
+    col.rgb /= Map(sin (time * 3.0), -1.0, 1.0, 3000.0, 50000.0);
     }
 
     col.rgb /= steps * 0.08; // Ambeint occlusion

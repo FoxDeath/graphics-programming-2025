@@ -18,7 +18,7 @@ struct Output
 // Signed distance function
 float GetDistance(vec3 p, inout Output o)
 {
-	float power = MandelbulbPower + (5.0 * map (sin (Time * PI / 10.0 + PI), -1.0, 1.0, 0.0, 1.0));
+	float power = MandelbulbPower + (5.0 * Map (sin (Time * PI / 10.0 + PI), -1.0, 1.0, 0.0, 1.0));
 
 	p.yz *= Rotate (-0.3 * PI);
 

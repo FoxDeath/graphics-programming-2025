@@ -26,6 +26,8 @@ private:
 
     std::shared_ptr<Material> CreateRaymarchingMaterial(const char* fragmentShaderPath);
 
+    void UpdateCamera();
+
     void RenderGUI();
 
 private:
@@ -34,6 +36,16 @@ private:
 
     // Camera controller
     CameraController m_cameraController;
+
+    // Mouse position for camera controller
+    glm::vec2 m_mousePosition;
+
+    // Camera controller parameters
+    glm::vec3 m_cameraPosition;
+    float m_cameraTranslationSpeed;
+    float m_cameraRotationSpeed;
+    bool m_cameraEnabled;
+    bool m_cameraEnablePressed;
 
     // Renderer
     Renderer m_renderer;

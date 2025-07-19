@@ -10,7 +10,6 @@
 #include <imgui.h>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
-#include <iostream>
 
 RaymarchingApplication::RaymarchingApplication()
     : Application(1024, 1024, "Ray-marching demo")
@@ -44,10 +43,6 @@ void RaymarchingApplication::Update()
     // Update the material properties
     m_material->SetUniformValue("ProjMatrix", camera.GetProjectionMatrix());
     m_material->SetUniformValue("InvProjMatrix", glm::inverse(camera.GetProjectionMatrix()));
-	m_material->SetUniformValue("Time", Application::GetCurrentTime());
-
-    //print time variable
-	std::cout << "Time: " << Application::GetCurrentTime() << std::endl;
 }
 
 void RaymarchingApplication::Render()
@@ -76,7 +71,7 @@ void RaymarchingApplication::InitializeCamera()
     // Create the main camera
     std::shared_ptr<Camera> camera = std::make_shared<Camera>();
     camera->SetViewMatrix(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0), glm::vec3(0.0f, 1.0f, 0.0));
-    float fov = 20.0f;
+    float fov = 1.0f;
     camera->SetPerspectiveProjectionMatrix(fov, GetMainWindow().GetAspectRatio(), 0.1f, 100.0f);
 
     // Create a scene node for the camera
@@ -91,10 +86,13 @@ void RaymarchingApplication::InitializeMaterial()
     m_material = CreateRaymarchingMaterial("shaders/exercise10.glsl");
 
     // Initialize material uniforms
-    m_material->SetUniformValue("MandelbulbIterations", 8);
-    m_material->SetUniformValue("MandelbulbCenter", glm::vec3(0, 0, -4));
-    m_material->SetUniformValue("MandelbulbPower", 8.0f);
-    m_material->SetUniformValue("MandelbulbColor", glm::vec3(0, 0, 1));
+    m_material->SetUniformValue("SphereCenter", glm::vec3(-2, 0, -10));
+    m_material->SetUniformValue("SphereRadius", 1.25f);
+    m_material->SetUniformValue("SphereColor", glm::vec3(0, 0, 1));
+    m_material->SetUniformValue("BoxMatrix", glm::translate(glm::vec3(2, 0, -10)));
+    m_material->SetUniformValue("BoxSize", glm::vec3(1, 1, 1));
+    m_material->SetUniformValue("BoxColor", glm::vec3(1, 0, 0));
+    m_material->SetUniformValue("Smoothness", 0.25f);
 }
 
 void RaymarchingApplication::InitializeRenderer()
@@ -140,27 +138,34 @@ void RaymarchingApplication::RenderGUI()
         // Get the camera view matrix and transform the sphere center and the box matrix
         glm::mat4 viewMatrix = m_cameraController.GetCamera()->GetCamera()->GetViewMatrix();
 
-        if (ImGui::TreeNodeEx("Mandelbulb", ImGuiTreeNodeFlags_DefaultOpen))
+        if (ImGui::TreeNodeEx("Sphere", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            static glm::vec3 center(0, 0, -4);
+            static glm::vec3 center(-2, 0, -10);
 
+            // Add controls for sphere parameters
             ImGui::DragFloat3("Center", &center[0], 0.1f);
-            m_material->SetUniformValue("MandelbulbCenter", glm::vec3(viewMatrix * glm::vec4(center, 1.0f)));
-
-            static int iterations = 10;
-            ImGui::SliderInt("Iterations", &iterations, 1, 20);
-            m_material->SetUniformValue("MandelbulbIterations", iterations);
-
-            static float power = 8.0f;
-            ImGui::SliderFloat("Power", &power, 2.0f, 10.0f);
-            m_material->SetUniformValue("MandelbulbPower", power);
-
-			static glm::vec3 color(0, 0, 1);
-			ImGui::ColorEdit3("Color", &color[0]);
-			m_material->SetUniformValue("MandelbulbColor", color);
+            m_material->SetUniformValue("SphereCenter", glm::vec3(viewMatrix * glm::vec4(center, 1.0f)));
+            ImGui::DragFloat("Radius", m_material->GetDataUniformPointer<float>("SphereRadius"), 0.1f);
+            ImGui::ColorEdit3("Color", m_material->GetDataUniformPointer<float>("SphereColor"));
 
             ImGui::TreePop();
         }
+        if (ImGui::TreeNodeEx("Box", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            static glm::vec3 translation(2, 0, -10);
+            static glm::vec3 rotation(0.0f);
+
+            // Add controls for box parameters
+            ImGui::DragFloat3("Translation", &translation[0], 0.1f);
+            ImGui::DragFloat3("Rotation", &rotation[0], 0.1f);
+            m_material->SetUniformValue("BoxMatrix", viewMatrix * glm::translate(translation) * glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z));
+            ImGui::DragFloat3("Size", m_material->GetDataUniformPointer<float>("BoxSize"), 0.1f);
+            ImGui::ColorEdit3("Color", m_material->GetDataUniformPointer<float>("BoxColor"));
+
+            ImGui::TreePop();
+        }
+
+        ImGui::DragFloat("Smoothness", m_material->GetDataUniformPointer<float>("Smoothness"), 0.1f);
     }
 
     m_imGui.EndFrame();

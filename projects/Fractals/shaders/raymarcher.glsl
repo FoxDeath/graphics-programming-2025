@@ -1,9 +1,20 @@
+struct RayMarchOutput
+{
+	float dist;
+	vec4 color;
+};
+
+void InitRayMarchOutput(out RayMarchOutput ro)
+{
+	ro.dist = 0.0;
+	ro.color = vec4(0.0, 0.0, 0.0, 1.0);
+}
 
 // Forward declare distance function
 float GetDistance(vec3 p);
 
 // Forward declare config function
-void GetRayMarcherConfig(out uint maxSteps, out float maxDistance, out float surfaceDistance);
+void GetRayMarcherConfig(out int steps, out float time, out float maxDistance, out float surfaceDistance);
 
 vec3 hsv2rgb (vec3 c) {
   vec4 K = vec4 (1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -16,89 +27,62 @@ float map (float value, float min1, float max1, float min2, float max2) {
 }
 
 // Marches the ray in the scene
-vec4 RayMarcherColour (vec3 ro, vec3 rd, float time) {
-  float steps = 0.0;
-  float totalDistance = 0.0;
-  float minDistToScene = 100.0;
-  vec3 minDistToScenePos = ro;
-  float minDistToOrigin = 100.0;
-  vec3 minDistToOriginPos = ro;
-  vec4 col = vec4 (0.0, 0.0, 0.0, 1.0);
-  vec3 curPos = ro;
-  bool hit = false;
-  float PI = 3.141592653589793238;
+void RayMarchering (vec3 ro, vec3 rd, inout RayMarchOutput o) {
+    float steps = 0.0;
+    float totalDistance = 0.0;
+    float minDistToScene = 100.0;
+    vec3 minDistToScenePos = ro;
+    float minDistToOrigin = 100.0;
+    vec3 minDistToOriginPos = ro;
+    vec4 col = vec4 (0.0, 0.0, 0.0, 1.0);
+    vec3 curPos = ro;
+    bool hit = false;
 
-  for (steps = 0.0; steps < float (250); steps++) {
-    vec3 p = ro + totalDistance * rd; // Current position of the ray
-    float distance = GetDistance (p); // Distance from the current position to the scene
-    curPos = ro + rd * totalDistance;
-    if (minDistToScene > distance) {
-      minDistToScene = distance;
-      minDistToScenePos = curPos;
-    }
-    if (minDistToOrigin > length (curPos)) {
-      minDistToOrigin = length (curPos);
-      minDistToOriginPos = curPos;
-    }
-    totalDistance += distance; // Increases the total distance armched
-    if (distance < 0.0001) {
-      hit = true;
-      break; // If the ray marched more than the max steps or the max distance, breake out
-    }
-    else if (distance > 200.0) {
-      break;
-    }
-  }
+    int maxSteps;
+    float time, maxDistance, surfaceDistance;
+    GetRayMarcherConfig(maxSteps, time, maxDistance, surfaceDistance);
 
-  float iterations = float (steps) + log (log (200.0)) / log (2.0) - log (log (dot (curPos, curPos))) / log (2.0);
+    for (steps = 0.0; steps < float (maxSteps); steps++) {
+        vec3 p = ro + totalDistance * rd; // Current position of the ray
+        float distance = GetDistance (p); // Distance from the current position to the scene
+        curPos = ro + rd * totalDistance;
+        if (minDistToScene > distance) {
+            minDistToScene = distance;
+            minDistToScenePos = curPos;
+        }
+        if (minDistToOrigin > length (curPos)) {
+            minDistToOrigin = length (curPos);
+            minDistToOriginPos = curPos;
+        }
+        totalDistance += distance; // Increases the total distance armched
+        if (distance < surfaceDistance) {
+            hit = true;
+            break; // If the ray marched more than the max steps or the max distance, breake out
+        }
+        else if (distance > maxDistance) {
+            break;
+        }
+    }
 
-  if (hit) {
+    float iterations = float (steps) + log (log (maxDistance)) / log (2.0) - log (log (dot (curPos, curPos))) / log (2.0);
+
+    if (hit) {
     col.rgb = vec3 (0.8 + (length (curPos) / 0.5), 1.0, 0.8);
     col.rgb = hsv2rgb (col.rgb);
-  }
-  else {
+    }
+    else {
     col.rgb = vec3 (0.8 + (length (minDistToScenePos) / 0.5), 1.0, 0.8);
     col.rgb = hsv2rgb (col.rgb);
     col.rgb *= 1.0 / (minDistToScene * minDistToScene);
     col.rgb /= map (sin (time * 3.0), -1.0, 1.0, 3000.0, 50000.0);
-  }
-
-  col.rgb /= steps * 0.08; // Ambeint occlusion
-  col.rgb /= pow (distance (ro, minDistToScenePos), 2.0);
-  col.rgb *= 3.0;
-
-  return col;
-}
-
-
-// Ray marching algorithm
-float RayMarch(vec3 origin, vec3 dir)
-{
-    float distance = 0.0f;
-
-    // Get configuration specific to this shader pass
-    uint maxSteps;
-    float maxDistance, surfaceDistance;
-    GetRayMarcherConfig(maxSteps, maxDistance, surfaceDistance);
-
-    // Iterate until maxSteps is reached or we find a point
-    for(uint i = 0u; i < maxSteps; ++i)
-    {
-        // Get distance to the current point
-        vec3 p = origin + dir * distance;
-        float d = GetDistance(p);
-        distance += d;
-
-        // If distance is too big, discard the fragment
-        if (distance > maxDistance)
-            discard;
-
-        // If this step increment was very small, we found a hit
-        if (d < surfaceDistance)
-            break;
     }
 
-    return distance;
+    col.rgb /= steps * 0.08; // Ambeint occlusion
+    col.rgb /= pow (distance (ro, minDistToScenePos), 2.0);
+    col.rgb *= 3.0;
+
+    o.dist = totalDistance;
+    o.color = col;
 }
 
 uniform int RaymarchHack;

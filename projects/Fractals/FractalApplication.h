@@ -8,10 +8,10 @@
 
 class Material;
 
-class RaymarchingApplication : public Application
+class FractalApplication : public Application
 {
 public:
-    RaymarchingApplication();
+    FractalApplication();
 
 protected:
     void Initialize() override;

@@ -98,6 +98,13 @@ float SmoothUnion(float a, float b, float k)
 	return min(a, b) - h * h * k * (1.0 / 4.0);
 }
 
+mat2 Rotate (float angle) {
+  float s = sin (angle);
+  float c = cos (angle);
+
+  return mat2 (c, -s, s, c);
+}
+
 // Smooth union with smoothness k and returning blend value in range (0-1)
 float SmoothUnion(float a, float b, float k, out float blend)
 {

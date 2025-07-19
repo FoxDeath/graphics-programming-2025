@@ -4,6 +4,8 @@ uniform vec3 MandelbulbCenter = vec3(0, 0, -4);
 uniform int MandelbulbIterations = 8;
 uniform float MandelbulbPower = 8.0;
 uniform float Time = 0.0;
+uniform float AOStrength;
+uniform float ShadowSoftness;
 uniform int Steps = 100;
 
 #define PI 3.141592653589793238
@@ -29,13 +31,22 @@ float GetDistance(vec3 p, inout Output o)
 
 float GetTime()
 {
-	// Return the time value, which is used to animate the Mandelbulb
 	return Time;
 }
 
 int GetSteps()
 {
 	return Steps;
+}
+
+float GetAOStrength()
+{
+	return AOStrength;
+}
+
+float GetShadowSoftness()
+{
+	return ShadowSoftness;
 }
 
 // Default value for o

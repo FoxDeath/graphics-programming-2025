@@ -94,6 +94,7 @@ void FractalApplication::InitializeMaterial()
     m_material->SetUniformValue("MandelbulbIterations", 8);
     m_material->SetUniformValue("MandelbulbCenter", glm::vec3(0, -2, -1.5));
     m_material->SetUniformValue("MandelbulbPower", 8.0f);
+    m_material->SetUniformValue("AOStrength", 1.0f);
 	m_material->SetUniformValue("Steps", 400);
 }
 
@@ -154,6 +155,10 @@ void FractalApplication::RenderGUI()
             static float power = 8.0f;
             ImGui::SliderFloat("Power", &power, 2.0f, 10.0f);
             m_material->SetUniformValue("MandelbulbPower", power);
+
+            static float aoStrength = 1.0f;
+            ImGui::SliderFloat("AO Strength", &aoStrength, 0.0f, 3.0f);
+            m_material->SetUniformValue("AOStrength", aoStrength);
 
             static int steps = 400;
 			ImGui::SliderInt("Steps", &steps, 10, 500);

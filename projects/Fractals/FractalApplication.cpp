@@ -46,6 +46,8 @@ void FractalApplication::Update()
     // Update the material properties
     m_material->SetUniformValue("ProjMatrix", camera.GetProjectionMatrix());
     m_material->SetUniformValue("InvProjMatrix", glm::inverse(camera.GetProjectionMatrix()));
+    m_material->SetUniformValue("ViewMatrix", camera.GetViewMatrix());
+    m_material->SetUniformValue("InvViewMatrix", glm::inverse(camera.GetViewMatrix()));
 	// Update time uniform
 	m_material->SetUniformValue("Time", Application::GetCurrentTime());
 }

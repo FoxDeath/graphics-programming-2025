@@ -16,7 +16,7 @@ float GetDistance(vec3 p);
 // Forward declare config function
 void GetRayMarcherConfig(out int steps, out float time, out float maxDistance, out float surfaceDistance);
 
-// Marches the ray in the scene
+// Marches the ray in the scene. ro is ray origin, rd is ray direction, and o is the output structure
 void RayMarchering (vec3 ro, vec3 rd, inout RayMarchOutput o) {
     float steps = 0.0;
     float totalDistance = 0.0;

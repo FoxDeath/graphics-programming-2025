@@ -1,7 +1,6 @@
 struct RayMarchOutput
 {
 	float dist;
-    float ao;
 	vec4 color;
 };
 
@@ -14,35 +13,31 @@ void InitRayMarchOutput(out RayMarchOutput ro)
 // Forward declare distance function
 float GetDistance(vec3 p);
 
+float GetAO();
+
 // Forward declare config function
 void GetRayMarcherConfig(out int steps, out float time, out float maxDistance, out float surfaceDistance);
 
-float AmbientOcclusion(vec3 p, vec3 normal) {
-    float ao = 0.0;
-    float weight = 1.0;
-    const int aoSteps = 5;
-    const float aoStepSize = 0.1;
+uniform int RaymarchHack;
+// Calculate numerical normals using the tetrahedron technique with specific differential
+// Implementation here because GetDistance needs to be defined
+vec3 CalculateNormal(vec3 p, float h)
+{
+    vec3 normal = vec3(0.0f);
 
-    for(int i = 1; i <= aoSteps; i++) {
-        float dist = aoStepSize * float(i);
-        float d = GetDistance(p + normal * dist); // 'map' is your distance function (Mandelbulb SDF)
-        ao += (dist - d) * weight;
-        weight *= 0.5; // progressively reduce influence
+    #define ZERO (min(RaymarchHack, 0)) // hack to prevent inlining
+    for(int i = ZERO; i < 4; i++)
+    {
+        vec3 e = 0.5773*(2.0*vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))-1.0);
+        normal += e * GetDistance(p + e * h);
     }
 
-    ao = 1.0 - clamp(ao, 0.0, 1.0);
-    return ao;
+    return normalize(normal);
 }
 
-vec3 EstimateNormal(vec3 p) {
-    float h = 0.001;
-    vec2 k = vec2(1, -1);
-    return normalize(
-        k.xyy * GetDistance(p + k.xyy*h) + 
-        k.yyx * GetDistance(p + k.yyx*h) + 
-        k.yxy * GetDistance(p + k.yxy*h) + 
-        k.xxx * GetDistance(p + k.xxx*h)
-    );
+vec3 CalculateNormal(vec3 p)
+{
+    return CalculateNormal(p, 0.0001f);
 }
 
 // Marches the ray in the scene. ro is ray origin, rd is ray direction, and o is the output structure
@@ -90,35 +85,15 @@ void RayMarchering (vec3 ro, vec3 rd, inout RayMarchOutput o) {
     col.rgb = vec3 (0.5 + (length (curPos) / 0.9), 1.0, 1.0);
     col.rgb = HSVToRGB(col.rgb);
 
-    vec3 normal = EstimateNormal(curPos);
-	float ao = pow(AmbientOcclusion(curPos, normal), o.ao * 5.0);
-    col.rgb *= ao;
+	vec3 normal = CalculateNormal(curPos);
+	float ao = pow(AmbientOcclusion(curPos, normal), GetAO() * 5.0);
+
+    vec3 light1 = get_light(curPos, rd, ro, light1_position, light1_color, normal);
+    vec3 light2 = get_light(curPos, rd, ro, light2_position, light2_color, normal);
+
+    col.rgb *= ao * (light1 + light2);
     }
-
-
 
     o.dist = totalDistance;
     o.color = col;
-}
-
-uniform int RaymarchHack;
-// Calculate numerical normals using the tetrahedron technique with specific differential
-// Implementation here because GetDistance needs to be defined
-vec3 CalculateNormal(vec3 p, float h)
-{
-    vec3 normal = vec3(0.0f);
-
-    #define ZERO (min(RaymarchHack, 0)) // hack to prevent inlining
-    for(int i = ZERO; i < 4; i++)
-    {
-        vec3 e = 0.5773*(2.0*vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))-1.0);
-        normal += e * GetDistance(p + e * h);
-    }
-
-    return normalize(normal);
-}
-
-vec3 CalculateNormal(vec3 p)
-{
-    return CalculateNormal(p, 0.0001f);
 }

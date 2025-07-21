@@ -119,6 +119,8 @@ std::shared_ptr<Material> FractalApplication::CreateRaymarchingMaterial(const ch
     fragmentShaderPaths.push_back("shaders/version330.glsl");
     fragmentShaderPaths.push_back("shaders/utils.glsl");
     fragmentShaderPaths.push_back("shaders/sdflibrary.glsl");
+    fragmentShaderPaths.push_back("shaders/ao.glsl");
+    fragmentShaderPaths.push_back("shaders/light.glsl");
     fragmentShaderPaths.push_back("shaders/raymarcher.glsl");
     fragmentShaderPaths.push_back(fragmentShaderPath);
     fragmentShaderPaths.push_back("shaders/raymarching.frag");

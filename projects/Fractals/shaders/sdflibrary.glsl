@@ -212,4 +212,3 @@ float LambdabulbSDF(vec3 p, int iterations, float power) {
 
     return 0.5 * log(r) * sqrt(r) / dz;
 }
-

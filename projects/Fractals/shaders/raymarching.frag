@@ -17,11 +17,22 @@ float GetDistance(vec3 p)
 	return GetDistance(p, o);
 }
 
+float GetAO()
+{
+	return GetAOStrength();
+}
+
 // Configure ray marcher
 void GetRayMarcherConfig(out int maxSteps, out float time, out float maxDistance, out float surfaceDistance)
 {
 	maxSteps = GetSteps(); // Maximum number of steps to take in ray marching
 	time = GetTime(); // Time for the ray march, used for animation
+    maxDistance = ProjMatrix[3][2] / (ProjMatrix[2][2] + 1.0); // Far plane
+    surfaceDistance = 0.0001;
+}
+
+void GetLightConfig(out float maxDistance, out float surfaceDistance)
+{
     maxDistance = ProjMatrix[3][2] / (ProjMatrix[2][2] + 1.0); // Far plane
     surfaceDistance = 0.0001;
 }
@@ -33,7 +44,6 @@ void main()
 	vec3 origin = viewPos.xyz / viewPos.w;
 	RayMarchOutput ro;
 	InitRayMarchOutput(ro);
-	ro.ao = GetAOStrength();
 
 	vec3 cameraPos = GetCameraPosition(InvProjMatrix);
 	vec3 cameraDirection = GetDirection(cameraPos, origin);

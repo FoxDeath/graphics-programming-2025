@@ -1,6 +1,7 @@
 struct RayMarchOutput
 {
 	float dist;
+    float ao;
 	vec4 color;
 };
 
@@ -15,6 +16,34 @@ float GetDistance(vec3 p);
 
 // Forward declare config function
 void GetRayMarcherConfig(out int steps, out float time, out float maxDistance, out float surfaceDistance);
+
+float AmbientOcclusion(vec3 p, vec3 normal) {
+    float ao = 0.0;
+    float weight = 1.0;
+    const int aoSteps = 5;
+    const float aoStepSize = 0.1;
+
+    for(int i = 1; i <= aoSteps; i++) {
+        float dist = aoStepSize * float(i);
+        float d = GetDistance(p + normal * dist); // 'map' is your distance function (Mandelbulb SDF)
+        ao += (dist - d) * weight;
+        weight *= 0.5; // progressively reduce influence
+    }
+
+    ao = 1.0 - clamp(ao, 0.0, 1.0);
+    return ao;
+}
+
+vec3 EstimateNormal(vec3 p) {
+    float h = 0.001;
+    vec2 k = vec2(1, -1);
+    return normalize(
+        k.xyy * GetDistance(p + k.xyy*h) + 
+        k.yyx * GetDistance(p + k.yyx*h) + 
+        k.yxy * GetDistance(p + k.yxy*h) + 
+        k.xxx * GetDistance(p + k.xxx*h)
+    );
+}
 
 // Marches the ray in the scene. ro is ray origin, rd is ray direction, and o is the output structure
 void RayMarchering (vec3 ro, vec3 rd, inout RayMarchOutput o) {
@@ -59,6 +88,7 @@ void RayMarchering (vec3 ro, vec3 rd, inout RayMarchOutput o) {
     if (hit) {
     col.rgb = vec3 (0.8 + (length (curPos) / 0.5), 1.0, 0.8);
     col.rgb = HSVToRGB(col.rgb);
+
     }
     else {
     col.rgb = vec3 (0.8 + (length (minDistToScenePos) / 0.5), 1.0, 0.8);
@@ -67,9 +97,9 @@ void RayMarchering (vec3 ro, vec3 rd, inout RayMarchOutput o) {
     col.rgb /= Map(sin (time * 3.0), -1.0, 1.0, 3000.0, 50000.0);
     }
 
-    col.rgb /= steps * 0.08; // Ambeint occlusion
-    col.rgb /= pow (distance (ro, minDistToScenePos), 2.0);
-    col.rgb *= 3.0;
+    vec3 normal = EstimateNormal(curPos);
+	float ao = pow(AmbientOcclusion(curPos, normal), o.ao * 5.0);
+    col.rgb *= ao;
 
     o.dist = totalDistance;
     o.color = col;

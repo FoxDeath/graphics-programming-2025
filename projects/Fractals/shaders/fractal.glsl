@@ -1,8 +1,9 @@
 // Uniforms
 // Replace constants with uniforms with the same name
-uniform vec3 MandelbulbCenter = vec3(0, 0, -4);
-uniform int MandelbulbIterations = 8;
-uniform float MandelbulbPower = 8.0;
+uniform vec3 Center = vec3(0, 0, -4);
+uniform int Iterations = 8;
+uniform float Power = 8.0;
+uniform bool Animate = true;
 uniform float Time = 0.0;
 uniform float AOStrength;
 uniform float ShadowSoftness;
@@ -20,18 +21,32 @@ struct Output
 // Signed distance function
 float GetDistance(vec3 p, inout Output o)
 {
-	float power = MandelbulbPower + (5.0 * Map (sin (Time * PI / 10.0 + PI), -1.0, 1.0, 0.0, 1.0));
+	float time = Time;
+
+	if(!Animate)
+	{
+		time = 0.0;
+	}
+
+	float power = Power + (5.0 * Map (sin (time * PI / 10.0 + PI), -1.0, 1.0, 0.0, 1.0));
 
 	p.yz *= Rotate (-0.3 * PI);
 
-	float mandelbulb = MandelbulbSDF(TransformToLocalPoint(p, MandelbulbCenter), MandelbulbIterations, power);
+	float mandelbulb = MandelbulbSDF(TransformToLocalPoint(p, Center), Iterations, power);
 
 	return mandelbulb;
 }
 
 float GetTime()
 {
-	return Time;
+	if(Animate)
+	{
+		return Time;
+	}
+	else
+	{
+		return 0.0;
+	}
 }
 
 int GetSteps()

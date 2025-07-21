@@ -34,7 +34,7 @@ void FractalApplication::Update()
 {
     Application::Update();
 
-    UpdateCamera();
+    FractalApplication::UpdateCamera();
 
     // Update camera controller
     m_cameraController.Update(GetMainWindow(), GetDeltaTime());
@@ -93,9 +93,10 @@ void FractalApplication::InitializeMaterial()
     m_material = CreateRaymarchingMaterial("shaders/fractal.glsl");
 
     // Initialize material uniforms
-    m_material->SetUniformValue("MandelbulbIterations", 8);
-    m_material->SetUniformValue("MandelbulbCenter", glm::vec3(0, -2, -1.5));
-    m_material->SetUniformValue("MandelbulbPower", 8.0f);
+    m_material->SetUniformValue("Animate", 1);
+    m_material->SetUniformValue("Iterations", 8);
+    m_material->SetUniformValue("Center", glm::vec3(0, -2, -1.5));
+    m_material->SetUniformValue("Power", 8.0f);
     m_material->SetUniformValue("AOStrength", 1.0f);
 	m_material->SetUniformValue("Steps", 400);
 }
@@ -145,18 +146,21 @@ void FractalApplication::RenderGUI()
 
         if (ImGui::TreeNodeEx("Mandelbulb", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            static glm::vec3 center(0, -2, -1.5);
+            static bool animate = 1;
+            ImGui::Checkbox("Animate", &animate);
+            m_material->SetUniformValue("Animate", (int)animate);
 
+            static glm::vec3 center(0, -2, -1.5);
             ImGui::DragFloat3("Center", &center[0], 0.1f);
-            m_material->SetUniformValue("MandelbulbCenter", glm::vec3(viewMatrix * glm::vec4(center, 1.0f)));
+            m_material->SetUniformValue("Center", glm::vec3(viewMatrix * glm::vec4(center, 1.0f)));
 
             static int iterations = 10;
-            ImGui::SliderInt("Iterations", &iterations, 1, 20);
-            m_material->SetUniformValue("MandelbulbIterations", iterations);
+            ImGui::SliderInt("Iterations", &iterations, 1, 25);
+            m_material->SetUniformValue("Iterations", iterations);
 
             static float power = 8.0f;
             ImGui::SliderFloat("Power", &power, 2.0f, 10.0f);
-            m_material->SetUniformValue("MandelbulbPower", power);
+            m_material->SetUniformValue("Power", power);
 
             static float aoStrength = 1.0f;
             ImGui::SliderFloat("AO Strength", &aoStrength, 0.0f, 3.0f);
@@ -185,9 +189,6 @@ void FractalApplication::UpdateCamera()
         if (enablePressed && !m_cameraEnablePressed)
         {
             m_cameraEnabled = !m_cameraEnabled;
-
-            window.SetMouseVisible(!m_cameraEnabled);
-            m_mousePosition = window.GetMousePosition(true);
         }
         m_cameraEnablePressed = enablePressed;
     }
@@ -216,27 +217,10 @@ void FractalApplication::UpdateCamera()
         inputTranslation *= m_cameraTranslationSpeed;
         inputTranslation *= GetDeltaTime();
 
-        // Double speed if SHIFT is pressed
-        if (window.IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
-            inputTranslation *= 2.0f;
-
         m_cameraPosition += inputTranslation.x * viewRight + inputTranslation.y * viewForward;
     }
 
-    // Update camera rotation
-    {
-        glm::vec2 mousePosition = window.GetMousePosition(true);
-        glm::vec2 deltaMousePosition = mousePosition - m_mousePosition;
-        m_mousePosition = mousePosition;
-
-        glm::vec3 inputRotation(-deltaMousePosition.x, deltaMousePosition.y, 0.0f);
-
-        inputRotation *= m_cameraRotationSpeed;
-
-        viewForward = glm::rotate(inputRotation.x, glm::vec3(0, 1, 0)) * glm::rotate(inputRotation.y, glm::vec3(viewRight)) * glm::vec4(viewForward, 0);
-    }
-
     // Update view matrix
-    m_camera.SetViewMatrix(m_cameraPosition, m_cameraPosition + viewForward);
+    m_camera.SetViewMatrix(m_cameraPosition, viewForward);
 }
 

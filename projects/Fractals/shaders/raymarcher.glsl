@@ -85,21 +85,17 @@ void RayMarchering (vec3 ro, vec3 rd, inout RayMarchOutput o) {
 
     float iterations = float (steps) + log (log (maxDistance)) / log (2.0) - log (log (dot (curPos, curPos))) / log (2.0);
 
-    if (hit) {
-    col.rgb = vec3 (0.8 + (length (curPos) / 0.5), 1.0, 0.8);
+    if (hit) 
+    {
+    col.rgb = vec3 (0.5 + (length (curPos) / 0.9), 1.0, 1.0);
     col.rgb = HSVToRGB(col.rgb);
-
-    }
-    else {
-    col.rgb = vec3 (0.8 + (length (minDistToScenePos) / 0.5), 1.0, 0.8);
-    col.rgb = HSVToRGB(col.rgb);
-    col.rgb *= 1.0 / (minDistToScene * minDistToScene);
-    col.rgb /= Map(sin (time * 3.0), -1.0, 1.0, 3000.0, 50000.0);
-    }
 
     vec3 normal = EstimateNormal(curPos);
 	float ao = pow(AmbientOcclusion(curPos, normal), o.ao * 5.0);
     col.rgb *= ao;
+    }
+
+
 
     o.dist = totalDistance;
     o.color = col;

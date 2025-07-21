@@ -93,6 +93,7 @@ void FractalApplication::InitializeMaterial()
     m_material = CreateRaymarchingMaterial("shaders/fractal.glsl");
 
     // Initialize material uniforms
+    m_material->SetUniformValue("FractalType", 0);
     m_material->SetUniformValue("Animate", 1);
     m_material->SetUniformValue("Iterations", 8);
     m_material->SetUniformValue("Center", glm::vec3(0, -2, -1.5));
@@ -144,34 +145,34 @@ void FractalApplication::RenderGUI()
         // Get the camera view matrix and transform the sphere center and the box matrix
         glm::mat4 viewMatrix = m_cameraController.GetCamera()->GetCamera()->GetViewMatrix();
 
-        if (ImGui::TreeNodeEx("Mandelbulb", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            static bool animate = 1;
-            ImGui::Checkbox("Animate", &animate);
-            m_material->SetUniformValue("Animate", (int)animate);
+		static int fractalType = 0;
+		static const char* fractalTypes[] = { "Mandelbulb", "Mandelbox", "Lambdabulb"};
+        ImGui::ListBox("Fractal Type", &fractalType, fractalTypes, 3, 5);
+        m_material->SetUniformValue("FractalType", fractalType);
 
-            static glm::vec3 center(0, -2, -1.5);
-            ImGui::DragFloat3("Center", &center[0], 0.1f);
-            m_material->SetUniformValue("Center", glm::vec3(viewMatrix * glm::vec4(center, 1.0f)));
+        static bool animate = 1;
+        ImGui::Checkbox("Animate", &animate);
+        m_material->SetUniformValue("Animate", (int)animate);
 
-            static int iterations = 10;
-            ImGui::SliderInt("Iterations", &iterations, 1, 25);
-            m_material->SetUniformValue("Iterations", iterations);
+        static glm::vec3 center(0, -2, -1.5);
+        ImGui::DragFloat3("Center", &center[0], 0.1f);
+        m_material->SetUniformValue("Center", glm::vec3(viewMatrix * glm::vec4(center, 1.0f)));
 
-            static float power = 8.0f;
-            ImGui::SliderFloat("Power", &power, 2.0f, 10.0f);
-            m_material->SetUniformValue("Power", power);
+        static int iterations = 10;
+        ImGui::SliderInt("Iterations", &iterations, 1, 25);
+        m_material->SetUniformValue("Iterations", iterations);
 
-            static float aoStrength = 1.0f;
-            ImGui::SliderFloat("AO Strength", &aoStrength, 0.0f, 3.0f);
-            m_material->SetUniformValue("AOStrength", aoStrength);
+        static float power = 8.0f;
+        ImGui::SliderFloat("Power", &power, 0.1f, 8.0f);
+        m_material->SetUniformValue("Power", power);
 
-            static int steps = 400;
-			ImGui::SliderInt("Steps", &steps, 10, 500);
-			m_material->SetUniformValue("Steps", steps);
+        static float aoStrength = 1.0f;
+        ImGui::SliderFloat("AO Strength", &aoStrength, 0.0f, 3.0f);
+        m_material->SetUniformValue("AOStrength", aoStrength);
 
-            ImGui::TreePop();
-        }
+        static int steps = 400;
+        ImGui::SliderInt("Steps", &steps, 10, 500);
+        m_material->SetUniformValue("Steps", steps);
     }
 
     m_imGui.EndFrame();

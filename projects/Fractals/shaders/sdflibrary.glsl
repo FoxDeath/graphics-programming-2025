@@ -143,4 +143,73 @@ float MandelbulbSDF(vec3 pos, int iterations, float power) {
     }
     return 0.5 * log(r) * r / dr;
 }
+vec3 triplexMul(vec3 n1, vec3 n2, float r1, float theta1, float phi1) {
+    float r2 = length(n2);
+    float theta2 = atan(n2.y, n2.x);
+    float phi2 = asin(n2.z / r2);
+
+    float r = r1 * r2;
+    float theta = theta1 + theta2;
+    float phi = phi1 + phi2;
+
+    return vec3(r * cos(theta) * cos(phi), r * sin(theta) * cos(phi), r * sin(phi));
+}
+
+vec3 triplexPow(vec3 z, float phase, float power) {
+    float r = length(z);
+    float theta = atan(z.y, z.x);
+    float phi = acos(z.z / r);
+    r = r * r * r * r;
+    theta *= power;
+    phi = phi * power + phase;
+    return vec3(r * sin(phi) * cos(theta), r * sin(phi) * sin(theta), r * cos(phi));
+}
+float sphereFold(vec4 z, float minR, float maxR, float bloatFactor) { float r2 = dot(z.xyz, z.xyz); return max(maxR / max(minR, r2), bloatFactor); }
+vec4 boxFold(vec4 z, vec3 r) { z.xyz = clamp(z.xyz, -r, r) * 2.0 - z.xyz; return z; }
+float de_box(vec4 p, vec3 s) { vec3 a = abs(p.xyz) - s; return (min(max(max(a.x, a.y), a.z), 0.0) + length(max(a, 0.0))) / p.w; }
+
+
+float MandelboxSDF(vec3 pos, int iterations, float power) {
+	vec4 p = vec4(pos, 1.0) * 5.0;
+    vec4 o = p;
+    float scale = 2.0;
+
+	for (int i = 0; i < iterations; i++) {
+		p = boxFold(p, vec3(1.0));
+		p *= sphereFold(p, 0.0, 1.0, 1.0) * power;
+		p += o;
+	}
+
+	return de_box(p, vec3(10));
+}
+
+
+float LambdabulbSDF(vec3 p, int iterations, float power) {
+    vec3 z = p;
+    vec3 c = vec3(1.035, -0.317, 0.013);
+    float r1 = length(c);
+    float theta1 = atan(c.y, c.x);
+    float phi1 = asin(c.z / r1);
+    float r = length(z);
+    float dz = 1.0;
+    float powercache1 = (power - 1.0) * 0.5;
+
+    for (int i = 0; i < int(iterations); i++) {
+        dz = power * pow(r, powercache1) * dz + 2.0;
+        
+        if (z.z > z.x) z.zx = z.xz;
+        if (z.z > z.y) z.zy = z.yz;
+        if (z.x > z.y) z.xy = z.yx;
+        z.xy = z.yx; // Put negative sign before z.yx to make a more coral like variation
+
+        z = triplexMul(c, z - triplexPow(z, 1.815142, power), r1, theta1, phi1);
+        z = 2.0 * clamp(z, vec3(0.0), vec3(0.5)) - z;
+        
+        r = length(z);
+		
+        if (r > 2.0) break;
+    }
+
+    return 0.5 * log(r) * sqrt(r) / dz;
+}
 

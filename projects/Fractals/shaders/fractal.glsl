@@ -1,5 +1,6 @@
 // Uniforms
 // Replace constants with uniforms with the same name
+uniform int FractalType = 0; // 0: Mandelbulb, 1: Mandelbox
 uniform vec3 Center = vec3(0, 0, -4);
 uniform int Iterations = 8;
 uniform float Power = 8.0;
@@ -29,12 +30,25 @@ float GetDistance(vec3 p, inout Output o)
 	}
 
 	float power = Power + (5.0 * Map (sin (time * PI / 10.0 + PI), -1.0, 1.0, 0.0, 1.0));
-
 	p.yz *= Rotate (-0.3 * PI);
 
-	float mandelbulb = MandelbulbSDF(TransformToLocalPoint(p, Center), Iterations, power);
-
-	return mandelbulb;
+	if(FractalType == 0) // Mandelbulb
+	{
+		return MandelbulbSDF(TransformToLocalPoint(p, Center), Iterations, power);
+	}
+	else if(FractalType == 1) // Mandelbox
+	{
+		return MandelboxSDF(TransformToLocalPoint(p, Center), Iterations, power);
+	}
+	else if(FractalType == 2)
+	{
+		return LambdabulbSDF(TransformToLocalPoint(p, Center), Iterations, power);
+	}
+	else
+	// Default case, return a large distance
+	{
+		return 1000000.0;
+	}
 }
 
 float GetTime()

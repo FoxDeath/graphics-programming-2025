@@ -17,11 +17,6 @@ float GetDistance(vec3 p)
 	return GetDistance(p, o);
 }
 
-float GetAO()
-{
-	return GetAOStrength();
-}
-
 // Configure ray marcher
 void GetRayMarcherConfig(out int maxSteps, out float time, out float maxDistance, out float surfaceDistance)
 {

@@ -1,3 +1,6 @@
+uniform vec3 BaseColor = vec3(0.2, 1.0, 0.3);
+uniform vec3 SecondaryColor = vec3(0.0, 0.4, 0.8);
+
 struct RayMarchOutput
 {
 	float dist;
@@ -12,8 +15,6 @@ void InitRayMarchOutput(out RayMarchOutput ro)
 
 // Forward declare distance function
 float GetDistance(vec3 p);
-
-float GetAO();
 
 // Forward declare config function
 void GetRayMarcherConfig(out int steps, out float time, out float maxDistance, out float surfaceDistance);
@@ -82,14 +83,13 @@ void RayMarchering (vec3 ro, vec3 rd, inout RayMarchOutput o) {
 
     if (hit) 
     {
-    col.rgb = vec3 (0.5 + (length (curPos) / 0.9), 1.0, 1.0);
-    col.rgb = HSVToRGB(col.rgb);
+    col.rgb = mix(BaseColor, SecondaryColor, length (curPos) / 1.5);
 
 	vec3 normal = CalculateNormal(curPos);
-	float ao = pow(AmbientOcclusion(curPos, normal), GetAO() * 5.0);
+	float ao = pow(AmbientOcclusion(curPos, normal), AOStrength * 5.0);
 
-    vec3 light1 = get_light(curPos, rd, ro, light1_position, light1_color, normal);
-    vec3 light2 = get_light(curPos, rd, ro, light2_position, light2_color, normal);
+    vec3 light1 = get_light(curPos, rd, ro, Light1Position, Light1Color, normal);
+    vec3 light2 = get_light(curPos, rd, ro, Light2Position, Light2Color, normal);
 
     col.rgb *= ao * (light1 + light2);
     }

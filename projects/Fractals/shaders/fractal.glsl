@@ -6,8 +6,6 @@ uniform int Iterations = 8;
 uniform float Power = 8.0;
 uniform bool Animate = true;
 uniform float Time = 0.0;
-uniform float AOStrength;
-uniform float ShadowSoftness;
 uniform int Steps = 100;
 
 #define PI 3.141592653589793238
@@ -66,16 +64,6 @@ float GetTime()
 int GetSteps()
 {
 	return Steps;
-}
-
-float GetAOStrength()
-{
-	return AOStrength;
-}
-
-float GetShadowSoftness()
-{
-	return ShadowSoftness;
 }
 
 // Default value for o

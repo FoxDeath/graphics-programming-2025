@@ -20,22 +20,24 @@ uniform float AmbientLight = 0.5;
 uniform float RefractionIntensity = 2.611;
 uniform float RefractionSharpness = 2.0;
 
-void GetLightConfig(out float maxDistance, out float surfaceDistance);
+void GetRayMarcherConfig(out float maxDistance, out float surfaceDistance);
 
-float soft_shadow(vec3 p, vec3 light_pos, float k) {
+float SoftShadow(vec3 p, vec3 light_pos, float k) 
+{
 	vec3 rd = normalize(light_pos - p);
 	float res = 1.0;
 	float ph = 1e20;
 
     float maxDistance, surfaceDistance;
-    GetLightConfig(maxDistance, surfaceDistance);
+    GetRayMarcherConfig(maxDistance, surfaceDistance);
 
 	float t = surfaceDistance + SelfShadowBias;
 
 	for (int i = 0; i < ShadowSteps; i++) {
 		float h = GetDistance(p + rd * t);
 
-		if (h < surfaceDistance) {
+		if (h < surfaceDistance) 
+		{
 			return 0.0;
 		}
 
@@ -46,7 +48,8 @@ float soft_shadow(vec3 p, vec3 light_pos, float k) {
 
 		t += max(h, ShadowMinStepSize);
 
-		if (t >= maxDistance) {
+		if (t >= maxDistance) 
+		{
 			break;
 		}
 	}
@@ -54,11 +57,12 @@ float soft_shadow(vec3 p, vec3 light_pos, float k) {
 	return clamp(res, 0.0, 1.0);
 }
 
-vec3 get_light(vec3 p, vec3 rd, vec3 ro, vec3 light_pos, vec3 light_color, vec3 normal) {
+vec3 Light(vec3 p, vec3 rd, vec3 ro, vec3 light_pos, vec3 light_color, vec3 normal) 
+{
 	vec3 to_light = normalize(light_pos - p);
 	float light = LightIntensity * clamp(dot(to_light, normal), 0.05, 1.0);
 
-	float shadow = soft_shadow(p, light_pos, ShadowSoftness);
+	float shadow = SoftShadow(p, light_pos, ShadowSoftness);
 	light *= max(shadow, ShadowDarkness);
 	vec3 reflection = reflect(to_light, normal);
 	float specular = pow(max(dot(reflection, rd), 0.0), RefractionSharpness);

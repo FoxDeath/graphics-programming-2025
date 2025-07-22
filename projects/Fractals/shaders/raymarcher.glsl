@@ -1,5 +1,6 @@
 uniform vec3 BaseColor = vec3(0.2, 1.0, 0.3);
 uniform vec3 SecondaryColor = vec3(0.0, 0.4, 0.8);
+uniform int Steps = 100;
 
 struct RayMarchOutput
 {
@@ -16,8 +17,10 @@ void InitRayMarchOutput(out RayMarchOutput ro)
 // Forward declare distance function
 float GetDistance(vec3 p);
 
+float GetTime();
+
 // Forward declare config function
-void GetRayMarcherConfig(out int steps, out float time, out float maxDistance, out float surfaceDistance);
+void GetRayMarcherConfig(out float maxDistance, out float surfaceDistance);
 
 uniform int RaymarchHack;
 // Calculate numerical normals using the tetrahedron technique with specific differential
@@ -53,28 +56,32 @@ void RayMarchering (vec3 ro, vec3 rd, inout RayMarchOutput o) {
     vec3 curPos = ro;
     bool hit = false;
 
-    int maxSteps;
-    float time, maxDistance, surfaceDistance;
-    GetRayMarcherConfig(maxSteps, time, maxDistance, surfaceDistance);
+    float maxDistance, surfaceDistance;
+    GetRayMarcherConfig(maxDistance, surfaceDistance);
 
-    for (steps = 0.0; steps < float (maxSteps); steps++) {
+    for (steps = 0.0; steps < float (Steps); steps++) 
+    {
         vec3 p = ro + totalDistance * rd; // Current position of the ray
         float distance = GetDistance (p); // Distance from the current position to the scene
         curPos = ro + rd * totalDistance;
-        if (minDistToScene > distance) {
+        if (minDistToScene > distance) 
+        {
             minDistToScene = distance;
             minDistToScenePos = curPos;
         }
-        if (minDistToOrigin > length (curPos)) {
+        if (minDistToOrigin > length (curPos)) 
+        {
             minDistToOrigin = length (curPos);
             minDistToOriginPos = curPos;
         }
         totalDistance += distance; // Increases the total distance armched
-        if (distance < surfaceDistance) {
+        if (distance < surfaceDistance) 
+        {
             hit = true;
             break; // If the ray marched more than the max steps or the max distance, breake out
         }
-        else if (distance > maxDistance) {
+        else if (distance > maxDistance) 
+        {
             break;
         }
     }
@@ -83,15 +90,15 @@ void RayMarchering (vec3 ro, vec3 rd, inout RayMarchOutput o) {
 
     if (hit) 
     {
-    col.rgb = mix(BaseColor, SecondaryColor, length (curPos) / 1.5);
+        col.rgb = mix(BaseColor, SecondaryColor, length (curPos) / 1.5);
 
-	vec3 normal = CalculateNormal(curPos);
-	float ao = pow(AmbientOcclusion(curPos, normal), AOStrength * 5.0);
+        vec3 normal = CalculateNormal(curPos);
+        float ao = pow(AmbientOcclusion(curPos, normal), AOStrength * 5.0);
 
-    vec3 light1 = get_light(curPos, rd, ro, Light1Position, Light1Color, normal);
-    vec3 light2 = get_light(curPos, rd, ro, Light2Position, Light2Color, normal);
+        vec3 light1 = Light(curPos, rd, ro, Light1Position, Light1Color, normal);
+        vec3 light2 = Light(curPos, rd, ro, Light2Position, Light2Color, normal);
 
-    col.rgb *= ao * (light1 + light2);
+        col.rgb *= ao * (light1 + light2);
     }
 
     o.dist = totalDistance;

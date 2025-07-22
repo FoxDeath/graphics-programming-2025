@@ -6,7 +6,6 @@ uniform int Iterations = 8;
 uniform float Power = 8.0;
 uniform bool Animate = true;
 uniform float Time = 0.0;
-uniform int Steps = 100;
 
 #define PI 3.141592653589793238
 
@@ -16,38 +15,6 @@ struct Output
 	// color of the closest figure
 	vec3 color;
 };
-
-// Signed distance function
-float GetDistance(vec3 p, inout Output o)
-{
-	float time = Time;
-
-	if(!Animate)
-	{
-		time = 0.0;
-	}
-
-	float power = Power + (5.0 * Map (sin (time * PI / 10.0 + PI), -1.0, 1.0, 0.0, 1.0));
-	p.yz *= Rotate (-0.3 * PI);
-
-	if(FractalType == 0) // Mandelbulb
-	{
-		return MandelbulbSDF(TransformToLocalPoint(p, Center), Iterations, power);
-	}
-	else if(FractalType == 1) // Mandelbox
-	{
-		return MandelboxSDF(TransformToLocalPoint(p, Center), Iterations, power);
-	}
-	else if(FractalType == 2)
-	{
-		return LambdabulbSDF(TransformToLocalPoint(p, Center), Iterations, power);
-	}
-	else
-	// Default case, return a large distance
-	{
-		return 1000000.0;
-	}
-}
 
 float GetTime()
 {
@@ -61,9 +28,29 @@ float GetTime()
 	}
 }
 
-int GetSteps()
+// Signed distance function
+float GetDistance(vec3 p, inout Output o)
 {
-	return Steps;
+	float power = Power + (5.0 * Map (sin (GetTime() * PI / 10.0 + PI), -1.0, 1.0, 0.0, 1.0));
+	p.yz *= Rotate (-0.3 * PI);
+
+	if(FractalType == 0) // Mandelbulb
+	{
+		return MandelbulbSDF(TransformToLocalPoint(p, Center), Iterations, power);
+	}
+	else if(FractalType == 1) // Mandelbox
+	{
+		return MandelboxSDF(TransformToLocalPoint(p, Center), Iterations, power);
+	}
+	else if(FractalType == 2)
+	{
+		return LambdakleinSDF(TransformToLocalPoint(p, Center), Iterations, power);
+	}
+	else
+	// Default case, return a large distance
+	{
+		return 1000000.0;
+	}
 }
 
 // Default value for o

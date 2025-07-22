@@ -13,7 +13,7 @@
 #include <iostream>
 
 FractalApplication::FractalApplication()
-    : Application(1024, 1024, "Ray-marching demo")
+    : Application(1024*1.5, 1024*1.5, "Fractal demo")
     , m_renderer(GetDevice())
 {
 }
@@ -47,7 +47,6 @@ void FractalApplication::Update()
     m_material->SetUniformValue("ProjMatrix", camera.GetProjectionMatrix());
     m_material->SetUniformValue("InvProjMatrix", glm::inverse(camera.GetProjectionMatrix()));
     m_material->SetUniformValue("ViewMatrix", camera.GetViewMatrix());
-    m_material->SetUniformValue("InvViewMatrix", glm::inverse(camera.GetViewMatrix()));
 	// Update time uniform
 	m_material->SetUniformValue("Time", Application::GetCurrentTime());
 }
@@ -166,7 +165,7 @@ void FractalApplication::RenderGUI()
         // Get the camera view matrix and transform the sphere center and the box matrix
         glm::mat4 viewMatrix = m_cameraController.GetCamera()->GetCamera()->GetViewMatrix();
 
-
+        static const char* fractalTypes[] = { "Mandelbulb", "Mandelbox", "Lambdaklein" };
         static int fractalType = 0;
 		static glm::vec3 baseColor = glm::vec3(0.2f, 1.0f, 0.3f);
         static glm::vec3 secondaryColor = glm::vec3(0.0, 0.4, 0.8);
@@ -226,7 +225,6 @@ void FractalApplication::RenderGUI()
 
         if (ImGui::TreeNodeEx("Fractal", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            static const char* fractalTypes[] = { "Mandelbulb", "Mandelbox", "Lambdabulb" };
             ImGui::ListBox("Fractal Type", &fractalType, fractalTypes, 3, 5);
             m_material->SetUniformValue("FractalType", fractalType);
 

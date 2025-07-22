@@ -8,7 +8,6 @@ out vec4 FragColor;
 uniform mat4 ProjMatrix;
 uniform mat4 InvProjMatrix;
 uniform mat4 ViewMatrix;
-uniform mat4 InvViewMatrix;
 
 // Implement GetDistance based on version with output
 float GetDistance(vec3 p)
@@ -18,15 +17,7 @@ float GetDistance(vec3 p)
 }
 
 // Configure ray marcher
-void GetRayMarcherConfig(out int maxSteps, out float time, out float maxDistance, out float surfaceDistance)
-{
-	maxSteps = GetSteps(); // Maximum number of steps to take in ray marching
-	time = GetTime(); // Time for the ray march, used for animation
-    maxDistance = ProjMatrix[3][2] / (ProjMatrix[2][2] + 1.0); // Far plane
-    surfaceDistance = 0.0001;
-}
-
-void GetLightConfig(out float maxDistance, out float surfaceDistance)
+void GetRayMarcherConfig(out float maxDistance, out float surfaceDistance)
 {
     maxDistance = ProjMatrix[3][2] / (ProjMatrix[2][2] + 1.0); // Far plane
     surfaceDistance = 0.0001;

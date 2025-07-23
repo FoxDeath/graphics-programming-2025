@@ -15,9 +15,9 @@ float AmbientOcclusion(vec3 p, vec3 normal)
     for(int i = 1; i <= aoSteps; i++) 
     {
         float dist = aoStepSize * float(i);
-        float d = GetDistance(p + normal * dist); // 'map' is your distance function (Mandelbulb SDF)
+        float d = GetDistance(p + normal * dist);
         ao += (dist - d) * weight;
-        weight *= 0.5; // progressively reduce influence
+        weight *= 0.5;
     }
 
     ao = 1.0 - clamp(ao, 0.0, 1.0);

@@ -119,7 +119,7 @@ float LambdakleinSDF(vec3 p, int iterations, float power)
         if (z.z > z.x) z.zx = z.xz;
         if (z.z > z.y) z.zy = z.yz;
         if (z.x > z.y) z.xy = z.yx;
-        z.xy = z.yx; // Put negative sign before z.yx to make a more coral like variation
+        z.xy = z.yx;
 
         z = TriplexMul(c, z - TriplexPow(z, 1.815142, power), r1, theta1, phi1);
         z = 2.0 * clamp(z, vec3(0.0), vec3(0.5)) - z;
